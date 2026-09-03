@@ -1,5 +1,5 @@
-# --- Konfiguracja SharedHealthAndHunger ---
-# --- SharedHealthAndHunger Configuration ---
+# --- Konfiguracja SharedHealthAndHunger v1.4 ---
+# --- SharedHealthAndHunger v1.4 Configuration ---
 
 # Wybierz język wiadomości w grze.
 # Select language for in-game messages.
@@ -22,7 +22,7 @@ enabled-effects: true
 # Should a message appear above the hotbar (Action Bar) when someone takes damage?
 enabled-actionbar: true
 
-# Czy ignorować atakującego?
+# Czy ignorować atakującego przy zadawaniu obrażeń swojemu zespołowi?
 # false = Atakujący też obrywa (Hardcore/Domyślne).
 # true  = Atakujący nie czuje bólu (Fair PvP).
 # Should the attacker be ignored?
@@ -30,20 +30,20 @@ enabled-actionbar: true
 # true  = Attacker doesn't feel pain (Fair PvP).
 ignore-attacker: false
 
-# Opóźnienie synchronizacji w milisekundach (zapobiega lagom i pętlom).
-# Synchronization cooldown in milliseconds (prevents lag and loops).
+# Minimalny odstęp w milisekundach między powiadomieniami Action Bar.
+# Cooldown in milliseconds for Action Bar notifications.
 cooldown-ms: 100
 
-# Maksymalna ilość zdrowia (20.0 = 10 serc).
-# Maximum health amount (20.0 = 10 hearts).
+# Maksymalna ilość zdrowia zespołu (20.0 = 10 serc).
+# Maximum health amount for the team (20.0 = 10 hearts).
 max-health: 20.0
 
 # Co się dzieje po śmierci gracza?
 # true  = Wszyscy przechodzą w tryb Widza (Koniec gry).
-# false = Normalna śmierć i respawn (Resetują się statystyki).
+# false = Normalna śmierć wszystkich graczy i respawn (Resetują się statystyki).
 # What happens after a player dies?
 # true  = Everyone goes into Spectator mode (Game Over).
-# false = Normal death and respawn (Stats reset).
+# false = Normal death for all players and respawn (Stats reset).
 respawn-spectator: true
 
 # Mnożnik utraty głodu.
@@ -53,3 +53,42 @@ respawn-spectator: true
 # 1.0 = Standard speed.
 # 2.0 = Hunger drops 2x faster.
 hunger-loss-multiplier: 1.0
+
+# ==============================================================================
+# INTEGRACJA Z WORLDRESET (WORLDRESET INTEGRATION)
+# ==============================================================================
+# Czy włączyć automatyczną integrację z pluginem WorldReset?
+# Enable automatic integration with WorldReset plugin?
+worldreset-compatibility: true
+
+# Lista światów, w których synchronizacja jest całkowicie wyłączona (np. Limbo w WorldReset).
+# List of worlds where synchronization is completely disabled (e.g. Limbo in WorldReset).
+ignored-worlds:
+  - "limbo"
+
+# ==============================================================================
+# GEYSER CROSSPLAY & KOMPATYBILNOŚĆ BEDROCK (BEDROCK CROSSPLAY COMPATIBILITY)
+# ==============================================================================
+# Czy włączyć optymalizacje dla graczy Bedrock dołączających przez Geyser/Floodgate?
+# Enable optimizations for Bedrock players joining via Geyser/Floodgate?
+geyser-compatibility: true
+
+# Czy skalować serca dla graczy Bedrock do 10 serc (20 HP) przy wyższym max-health?
+# Zapobiega to błędom wyświetlania UI i psuciu się HUD na telefonach i konsolach.
+# Should health bar be visually scaled to 10 hearts (20 HP) on Bedrock clients when max-health > 20?
+# Prevents Bedrock UI heart bar glitches and screen clutter.
+geyser-health-scale: true
+
+# ==============================================================================
+# EFEKTY FIZYCZNE PRZY OTRZYMANIU OBRAŻEŃ (PHYSICAL DAMAGE FEEDBACK)
+# ==============================================================================
+physical-feedback:
+  # Czy odtwarzać czerwoną animację bólu (hurt animation) bez uszkadzania pancerza?
+  # Should hurt animation (red screen flash & camera tilt) be played without damaging armor?
+  hurt-animation: true
+  # Czy nadawać lekki odrzut sojusznikom przy otrzymaniu obrażeń?
+  # Should teammates receive slight knockback when damage occurs?
+  knockback: true
+  # Siła odrzutu (domyślnie 0.2)
+  # Knockback strength (default 0.2)
+  knockback-strength: 0.2
