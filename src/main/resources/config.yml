@@ -1,0 +1,55 @@
+# --- Konfiguracja SharedHealthAndHunger ---
+# --- SharedHealthAndHunger Configuration ---
+
+# Wybierz język wiadomości w grze.
+# Select language for in-game messages.
+# Dostępne / Available: en, pl
+language: en
+
+# Czy życie ma być synchronizowane między graczami?
+# Should health be synchronized between players?
+enabled-health: true
+
+# Czy głód ma być synchronizowany?
+# Should hunger be synchronized?
+enabled-food: true
+
+# Czy efekty mikstur (np. Trucizna, Szybkość) mają być współdzielone?
+# Should potion effects (e.g. Poison, Speed) be shared?
+enabled-effects: true
+
+# Czy pokazywać komunikat nad ekwipunkiem (Action Bar), gdy ktoś otrzyma obrażenia?
+# Should a message appear above the hotbar (Action Bar) when someone takes damage?
+enabled-actionbar: true
+
+# Czy ignorować atakującego?
+# false = Atakujący też obrywa (Hardcore/Domyślne).
+# true  = Atakujący nie czuje bólu (Fair PvP).
+# Should the attacker be ignored?
+# false = Attacker takes shared damage too (Hardcore/Default).
+# true  = Attacker doesn't feel pain (Fair PvP).
+ignore-attacker: false
+
+# Opóźnienie synchronizacji w milisekundach (zapobiega lagom i pętlom).
+# Synchronization cooldown in milliseconds (prevents lag and loops).
+cooldown-ms: 100
+
+# Maksymalna ilość zdrowia (20.0 = 10 serc).
+# Maximum health amount (20.0 = 10 hearts).
+max-health: 20.0
+
+# Co się dzieje po śmierci gracza?
+# true  = Wszyscy przechodzą w tryb Widza (Koniec gry).
+# false = Normalna śmierć i respawn (Resetują się statystyki).
+# What happens after a player dies?
+# true  = Everyone goes into Spectator mode (Game Over).
+# false = Normal death and respawn (Stats reset).
+respawn-spectator: true
+
+# Mnożnik utraty głodu.
+# 1.0 = Prędkość standardowa.
+# 2.0 = Głód spada 2x szybciej.
+# Hunger loss multiplier.
+# 1.0 = Standard speed.
+# 2.0 = Hunger drops 2x faster.
+hunger-loss-multiplier: 1.0

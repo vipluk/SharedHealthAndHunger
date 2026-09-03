@@ -1,0 +1,85 @@
+name: SharedHealthAndHunger
+version: "1.3"
+website: https://modrinth.com/plugin/sharedhealthandhunger
+main: org.example.sharedhealthandhunger.Main
+api-version: "1.21"
+author: vipluk
+description: Plugin synchronizujący życie, głód i efekty mikstur między graczami.
+
+commands:
+  sharedhealth:
+    description: Główna komenda do zarządzania synchronizacją
+    aliases: [sh]
+    usage: |
+      §cPoprawne użycie:
+      §6/sh respawn §7- Resetuje grę
+      §6/sh language <en|pl>
+      §6/sh toggle <health - food - effects - actionbar - attackerfeeldamage - respawn>
+      §6/sh set <maxhealth - hungermult> <wartość>
+
+permissions:
+  # --- Główne ---
+  sharedhealth.respawn:
+    description: Pozwala resetować grę
+    default: op
+  sharedhealth.language:
+    description: Pozwala zmieniać język
+    default: op
+
+  # --- Toggle (Szczegółowe) ---
+  sharedhealth.toggle.health:
+    description: Pozwala przełączać synchronizację życia
+    default: op
+  sharedhealth.toggle.food:
+    description: Pozwala przełączać synchronizację głodu
+    default: op
+  sharedhealth.toggle.effects:
+    description: Pozwala przełączać synchronizację efektów
+    default: op
+  sharedhealth.toggle.actionbar:
+    description: Pozwala przełączać action bar
+    default: op
+  sharedhealth.toggle.attackerfeeldamage:
+    description: Pozwala przełączać obrażenia atakującego
+    default: op
+  sharedhealth.toggle.respawn:
+    description: Pozwala przełączać tryb spectator
+    default: op
+
+  # --- Toggle (Zbiorcze) ---
+  sharedhealth.toggle.*:
+    description: Pozwala przełączać WSZYSTKIE opcje
+    default: op
+    children:
+      sharedhealth.toggle.health: true
+      sharedhealth.toggle.food: true
+      sharedhealth.toggle.effects: true
+      sharedhealth.toggle.actionbar: true
+      sharedhealth.toggle.attackerfeeldamage: true
+      sharedhealth.toggle.respawn: true
+
+  # --- Set (Szczegółowe) ---
+  sharedhealth.set.maxhealth:
+    description: Pozwala zmieniać maksymalne życie
+    default: op
+  sharedhealth.set.hungermult:
+    description: Pozwala zmieniać mnożnik głodu
+    default: op
+
+  # --- Set (Zbiorcze) ---
+  sharedhealth.set.*:
+    description: Pozwala ustawiać WSZYSTKIE wartości
+    default: op
+    children:
+      sharedhealth.set.maxhealth: true
+      sharedhealth.set.hungermult: true
+
+  # --- ADMIN (Wszystko) ---
+  sharedhealth.*:
+    description: Nadaje pełną kontrolę nad pluginem
+    default: op
+    children:
+      sharedhealth.respawn: true
+      sharedhealth.language: true
+      sharedhealth.toggle.*: true
+      sharedhealth.set.*: true
