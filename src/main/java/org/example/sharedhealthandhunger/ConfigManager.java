@@ -1,14 +1,12 @@
-package org.example.sharedhealthandhunger.config;
+package org.example.sharedhealthandhunger;
 
 import org.bukkit.configuration.file.FileConfiguration;
-import org.example.sharedhealthandhunger.Main;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Zarządza konfiguracją pluginu (config.yml), dbając o wartości domyślne,
- * zapis zmian w locie oraz wsparcie nowych modułów.
+ * Zarządza konfiguracją pluginu (config.yml).
  */
 public class ConfigManager {
 
@@ -43,7 +41,6 @@ public class ConfigManager {
         plugin.reloadConfig();
         FileConfiguration cfg = plugin.getConfig();
 
-        // Podstawowe wartości
         cfg.addDefault("language", "en");
         cfg.addDefault("enabled-health", true);
         cfg.addDefault("enabled-food", true);
@@ -55,17 +52,14 @@ public class ConfigManager {
         cfg.addDefault("respawn-spectator", true);
         cfg.addDefault("hunger-loss-multiplier", 1.0);
 
-        // WorldReset
         cfg.addDefault("worldreset-compatibility", true);
         List<String> defaultIgnoredWorlds = new ArrayList<>();
         defaultIgnoredWorlds.add("limbo");
         cfg.addDefault("ignored-worlds", defaultIgnoredWorlds);
 
-        // Geyser
         cfg.addDefault("geyser-compatibility", true);
         cfg.addDefault("geyser-health-scale", true);
 
-        // Physical feedback
         cfg.addDefault("physical-feedback.hurt-animation", true);
         cfg.addDefault("physical-feedback.knockback", true);
         cfg.addDefault("physical-feedback.knockback-strength", 0.2);
@@ -73,7 +67,6 @@ public class ConfigManager {
         cfg.options().copyDefaults(true);
         plugin.saveConfig();
 
-        // Odczyt pól
         enabledHealth = cfg.getBoolean("enabled-health", true);
         enabledFood = cfg.getBoolean("enabled-food", true);
         enabledEffects = cfg.getBoolean("enabled-effects", true);

@@ -1,10 +1,9 @@
-package org.example.sharedhealthandhunger.tasks;
+package org.example.sharedhealthandhunger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.example.sharedhealthandhunger.Main;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +32,7 @@ public class HungerTask extends BukkitRunnable {
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (!p.isOnline() || p.isDead()) continue;
             if (p.getGameMode() == GameMode.SPECTATOR || p.getGameMode() == GameMode.CREATIVE) continue;
-            if (plugin.getWorldResetHook().isPlayerInIgnoredWorld(p)) continue;
+            if (plugin.getCompatibilityManager().isPlayerInIgnoredWorld(p)) continue;
 
             UUID id = p.getUniqueId();
             float currentExhaustion = p.getExhaustion();
@@ -46,11 +45,9 @@ public class HungerTask extends BukkitRunnable {
                 float newTotal = currentExhaustion + extra;
 
                 if (newTotal >= 4.0f) {
-                    // Wyczerpanie przekracza 4.0f - waniliowy silnik odejmie punkt głodu/nasycenia
                     int dropSteps = (int) (newTotal / 4.0f);
                     float remainder = newTotal % 4.0f;
 
-                    // Odejmij najpierw nasycenie (saturation), potem poziom głodu (food level)
                     float sat = p.getSaturation();
                     if (sat > 0) {
                         float satToDeduct = Math.min(sat, (float) dropSteps);

@@ -1,18 +1,9 @@
-package org.example.sharedhealthandhunger.commands;
+package org.example.sharedhealthandhunger;
 
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.util.Vector;
-import org.example.sharedhealthandhunger.Main;
-import org.example.sharedhealthandhunger.compat.GeyserHook;
-import org.example.sharedhealthandhunger.compat.VersionAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -21,7 +12,7 @@ import java.util.List;
 
 /**
  * Obsługa komendy /sharedhealth (alias /sh) wraz z kompletnym TabCompleterem,
- * granularnymi uprawnieniami oraz nowymi komendami /sh reload i /sh sync.
+ * granularnymi uprawnieniami oraz komendami administracyjnymi.
  */
 public class SharedHealthCommand implements CommandExecutor, TabCompleter {
 
@@ -43,50 +34,47 @@ public class SharedHealthCommand implements CommandExecutor, TabCompleter {
         switch (mainArg) {
             case "respawn" -> {
                 if (!hasPerm(sender, "sharedhealth.respawn")) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("no-permission")
-                            .replace("{permission}", "sharedhealth.respawn"));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("no-permission"));
                     return true;
                 }
                 plugin.resetGame();
             }
             case "reload" -> {
                 if (!hasPerm(sender, "sharedhealth.reload")) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("no-permission")
-                            .replace("{permission}", "sharedhealth.reload"));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("no-permission"));
                     return true;
                 }
                 plugin.reloadPlugin();
-                sender.sendMessage(plugin.getLanguageManager().getMsg("reload-success"));
+                sender.sendMessage(plugin.getLanguageManager().getComponent("reload-success"));
             }
             case "sync" -> {
                 if (!hasPerm(sender, "sharedhealth.sync")) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("no-permission")
-                            .replace("{permission}", "sharedhealth.sync"));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("no-permission"));
                     return true;
                 }
                 plugin.syncAllTeamStats();
                 double hp = plugin.getConfigManager().getMaxHealth();
-                sender.sendMessage(plugin.getLanguageManager().getMsg("sync-success")
+                String msg = plugin.getLanguageManager().getRawMsg("sync-success")
                         .replace("{health}", String.format("%.1f", hp))
-                        .replace("{food}", "20"));
+                        .replace("{food}", "20");
+                sender.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getLanguageManager().getRawMsg("prefix") + msg));
             }
             case "language" -> {
                 if (!hasPerm(sender, "sharedhealth.language")) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("no-permission")
-                            .replace("{permission}", "sharedhealth.language"));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("no-permission"));
                     return true;
                 }
                 if (args.length < 2) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("usage-language"));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("usage-language"));
                     return true;
                 }
                 String newLang = args[1].toLowerCase();
                 if (newLang.equals("en") || newLang.equals("pl")) {
                     plugin.getLanguageManager().setLanguage(newLang);
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("language-changed")
-                            .replace("{lang}", newLang));
+                    String msg = plugin.getLanguageManager().getRawMsg("language-changed").replace("{lang}", newLang);
+                    sender.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getLanguageManager().getRawMsg("prefix") + msg));
                 } else {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("language-invalid"));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("language-invalid"));
                 }
             }
             case "toggle" -> {
@@ -98,8 +86,7 @@ public class SharedHealthCommand implements CommandExecutor, TabCompleter {
                 String permRequired = "sharedhealth.toggle." + subArg;
 
                 if (!hasPerm(sender, permRequired) && !hasPerm(sender, "sharedhealth.toggle.*")) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("no-permission")
-                            .replace("{permission}", permRequired));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("no-permission"));
                     return true;
                 }
 
@@ -138,19 +125,19 @@ public class SharedHealthCommand implements CommandExecutor, TabCompleter {
                 }
 
                 String key = state ? "toggle-on" : "toggle-off";
-                sender.sendMessage(plugin.getLanguageManager().getMsg(key).replace("{option}", subArg));
+                String msg = plugin.getLanguageManager().getRawMsg(key).replace("{option}", subArg);
+                sender.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getLanguageManager().getRawMsg("prefix") + msg));
             }
             case "set" -> {
                 if (args.length < 3) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("usage-set"));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("usage-set"));
                     return true;
                 }
                 String subArg = args[1].toLowerCase();
                 String permRequired = "sharedhealth.set." + subArg;
 
                 if (!hasPerm(sender, permRequired) && !hasPerm(sender, "sharedhealth.set.*")) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("no-permission")
-                            .replace("{permission}", permRequired));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("no-permission"));
                     return true;
                 }
 
@@ -160,19 +147,21 @@ public class SharedHealthCommand implements CommandExecutor, TabCompleter {
                     if (subArg.equals("maxhealth")) {
                         plugin.getConfigManager().setMaxHealth(value);
                         plugin.applyMaxValuesToOnlinePlayers();
-                        sender.sendMessage(plugin.getLanguageManager().getMsg("set-value")
+                        String msg = plugin.getLanguageManager().getRawMsg("set-value")
                                 .replace("{option}", "Max Health")
-                                .replace("{value}", String.valueOf(value)));
+                                .replace("{value}", String.valueOf(value));
+                        sender.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getLanguageManager().getRawMsg("prefix") + msg));
                     } else if (subArg.equals("hungermult")) {
                         plugin.getConfigManager().setHungerLossMultiplier(value);
-                        sender.sendMessage(plugin.getLanguageManager().getMsg("set-value")
+                        String msg = plugin.getLanguageManager().getRawMsg("set-value")
                                 .replace("{option}", "Hunger Multiplier")
-                                .replace("{value}", String.valueOf(value)));
+                                .replace("{value}", String.valueOf(value));
+                        sender.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getLanguageManager().getRawMsg("prefix") + msg));
                     } else {
                         sendHelp(sender);
                     }
                 } catch (NumberFormatException e) {
-                    sender.sendMessage(plugin.getLanguageManager().getMsg("invalid-number"));
+                    sender.sendMessage(plugin.getLanguageManager().getComponent("invalid-number"));
                 }
             }
             default -> sendHelp(sender);
@@ -182,15 +171,15 @@ public class SharedHealthCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(plugin.getLanguageManager().getMsg("prefix") + "Commands:");
-        if (hasPerm(sender, "sharedhealth.respawn")) sender.sendMessage(plugin.getLanguageManager().getMsg("usage-respawn"));
-        if (hasPerm(sender, "sharedhealth.reload")) sender.sendMessage(plugin.getLanguageManager().getMsg("usage-reload"));
-        if (hasPerm(sender, "sharedhealth.sync")) sender.sendMessage(plugin.getLanguageManager().getMsg("usage-sync"));
-        if (hasPerm(sender, "sharedhealth.language")) sender.sendMessage(plugin.getLanguageManager().getMsg("usage-language"));
+        sender.sendMessage(plugin.getLanguageManager().getComponent("prefix"));
+        if (hasPerm(sender, "sharedhealth.respawn")) sender.sendMessage(plugin.getLanguageManager().getComponent("usage-respawn"));
+        if (hasPerm(sender, "sharedhealth.reload")) sender.sendMessage(plugin.getLanguageManager().getComponent("usage-reload"));
+        if (hasPerm(sender, "sharedhealth.sync")) sender.sendMessage(plugin.getLanguageManager().getComponent("usage-sync"));
+        if (hasPerm(sender, "sharedhealth.language")) sender.sendMessage(plugin.getLanguageManager().getComponent("usage-language"));
         if (hasPerm(sender, "sharedhealth.toggle.*") || hasPerm(sender, "sharedhealth.toggle.health"))
-            sender.sendMessage(plugin.getLanguageManager().getMsg("usage-toggle"));
+            sender.sendMessage(plugin.getLanguageManager().getComponent("usage-toggle"));
         if (hasPerm(sender, "sharedhealth.set.*") || hasPerm(sender, "sharedhealth.set.maxhealth"))
-            sender.sendMessage(plugin.getLanguageManager().getMsg("usage-set"));
+            sender.sendMessage(plugin.getLanguageManager().getComponent("usage-set"));
     }
 
     @Override

@@ -1,15 +1,17 @@
-package org.example.sharedhealthandhunger.lang;
+package org.example.sharedhealthandhunger;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.example.sharedhealthandhunger.Main;
 
 import java.io.File;
 
 /**
- * Odpowiada za wielojęzyczność pluginu (English / Polski),
- * wczytywanie plików messages_*.yml, parsowanie kolorów i prefiksów.
+ * Odpowiada za wielojęzyczność pluginu (English / Polski).
+ * Wykorzystuje w 100% nowoczesne Paper Adventure API, eliminując przestarzały ChatColor.
  */
 public class LanguageManager {
 
@@ -60,18 +62,39 @@ public class LanguageManager {
         return currentLanguage;
     }
 
-    @SuppressWarnings("deprecation")
-    public String getMsg(String key) {
-        if (langConfig == null) return key;
+    public Component getComponent(String key) {
+        if (langConfig == null) return Component.text(key);
         String prefix = langConfig.getString("prefix", "&e[SharedHealth] &7");
         String msg = langConfig.getString(key, key);
-        return ChatColor.translateAlternateColorCodes('&', prefix + msg);
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + msg);
     }
 
-    @SuppressWarnings("deprecation")
-    public String getRawMsg(String key) {
-        if (langConfig == null) return key;
+    public Component getRawComponent(String key) {
+        if (langConfig == null) return Component.text(key);
         String msg = langConfig.getString(key, key);
-        return ChatColor.translateAlternateColorCodes('&', msg);
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(msg);
+    }
+
+    public String getMsg(String key) {
+        return LegacyComponentSerializer.legacySection().serialize(getComponent(key));
+    }
+
+    public String getRawMsg(String key) {
+        return LegacyComponentSerializer.legacySection().serialize(getRawComponent(key));
+    }
+
+    public void sendMessage(CommandSender sender, String key) {
+        sender.sendMessage(getComponent(key));
+    }
+
+    public void broadcast(String key) {
+        Bukkit.broadcast(getComponent(key));
+    }
+
+    public void broadcastFormatted(String key, String target, String replacement) {
+        String raw = langConfig != null ? langConfig.getString(key, key) : key;
+        String prefix = langConfig != null ? langConfig.getString("prefix", "&e[SharedHealth] &7") : "";
+        String text = (prefix + raw).replace(target, replacement);
+        Bukkit.broadcast(LegacyComponentSerializer.legacyAmpersand().deserialize(text));
     }
 }
