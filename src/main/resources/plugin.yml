@@ -1,10 +1,11 @@
 name: SharedHealthAndHunger
-version: "1.3"
+version: "1.4"
 website: https://modrinth.com/plugin/sharedhealthandhunger
 main: org.example.sharedhealthandhunger.Main
 api-version: "1.21"
 author: vipluk
-description: Plugin synchronizujący życie, głód i efekty mikstur między graczami.
+description: Zaawansowany plugin synchronizujący życie, głód i efekty mikstur z pełnym wsparciem WorldReset, Geyser Crossplay oraz wersji 1.21 - 26.2.
+softdepend: [WorldReset, floodgate, Geyser-Spigot]
 
 commands:
   sharedhealth:
@@ -12,15 +13,23 @@ commands:
     aliases: [sh]
     usage: |
       §cPoprawne użycie:
-      §6/sh respawn §7- Resetuje grę
+      §6/sh respawn §7- Resetuje grę i leczy graczy
+      §6/sh reload §7- Przeładowuje konfigurację i pliki językowe
+      §6/sh sync §7- Wymusza synchronizację zdrowia i głodu
       §6/sh language <en|pl>
-      §6/sh toggle <health - food - effects - actionbar - attackerfeeldamage - respawn>
-      §6/sh set <maxhealth - hungermult> <wartość>
+      §6/sh toggle <health|food|effects|actionbar|attackerfeeldamage|respawn>
+      §6/sh set <maxhealth|hungermult> <wartość>
 
 permissions:
   # --- Główne ---
   sharedhealth.respawn:
     description: Pozwala resetować grę
+    default: op
+  sharedhealth.reload:
+    description: Pozwala przeładować konfigurację i język
+    default: op
+  sharedhealth.sync:
+    description: Pozwala wymusić ponowną synchronizację statystyk
     default: op
   sharedhealth.language:
     description: Pozwala zmieniać język
@@ -80,6 +89,8 @@ permissions:
     default: op
     children:
       sharedhealth.respawn: true
+      sharedhealth.reload: true
+      sharedhealth.sync: true
       sharedhealth.language: true
       sharedhealth.toggle.*: true
       sharedhealth.set.*: true
