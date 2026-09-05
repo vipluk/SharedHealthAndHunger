@@ -56,6 +56,15 @@ The hunger drain task has been redesigned:
 
 ---
 
+## 📈 Telemetry & Server Metrics (bStats & FastStats)
+
+Integrated anonymous server telemetry using both **bStats** and **FastStats** to collect deployment insights, active installations, and platform demographics:
+* **bStats Integration:** Configured with plugin ID `33872`. Relocated under `org.example.sharedhealthandhunger.bstats` to ensure zero classpath collisions with other plugins.
+* **FastStats SDK:** Integrated official FastStats Bukkit SDK (token: `f7130edb41bc7dad6a1f697e74f54001`) with graceful startup (`context.ready()`) and shutdown (`context.shutdown()`) hooks. Relocated under `org.example.sharedhealthandhunger.faststats`.
+* **Dual Telemetry Benchmark:** Both services run in parallel to benchmark data collection reliability, reporting latencies, and platform breakdown accuracy.
+
+---
+
 ## 📜 Commands & Permissions
 
 Main command aliases: `/sharedhealth` or `/sh`

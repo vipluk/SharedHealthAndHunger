@@ -20,11 +20,14 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Zunifikowany listener zdarzeń gry dla SharedHealthAndHunger.
@@ -39,11 +42,61 @@ public class SharedGameListener implements Listener {
     private final Set<UUID> suppressFood = new HashSet<>();
     private final Set<UUID> suppressEffects = new HashSet<>();
 
+    private final Map<EntityDamageEvent.DamageCause, Long> lastPeriodicDamageMillis = new ConcurrentHashMap<>();
+    private final Map<EntityRegainHealthEvent.RegainReason, Long> lastPeriodicRegenMillis = new ConcurrentHashMap<>();
+
     private long lastActionBarTime = 0L;
     private boolean isHandlingTeamDeath = false;
 
     public SharedGameListener(Main plugin) {
         this.plugin = plugin;
+    }
+
+    private boolean isPeriodicDamageCause(EntityDamageEvent.DamageCause cause) {
+        return cause == EntityDamageEvent.DamageCause.POISON
+                || cause == EntityDamageEvent.DamageCause.WITHER
+                || cause == EntityDamageEvent.DamageCause.FIRE_TICK
+                || cause == EntityDamageEvent.DamageCause.FREEZE
+                || cause == EntityDamageEvent.DamageCause.STARVATION
+                || cause == EntityDamageEvent.DamageCause.DROWNING
+                || cause == EntityDamageEvent.DamageCause.SUFFOCATION;
+    }
+
+    private long getPeriodicDamageIntervalMs(Player victim, EntityDamageEvent.DamageCause cause) {
+        if (cause == EntityDamageEvent.DamageCause.POISON) {
+            PotionEffect eff = victim.getPotionEffect(PotionEffectType.POISON);
+            int amp = eff != null ? eff.getAmplifier() : 0;
+            long intervalTicks = Math.max(1, 25 >> amp);
+            return (long) (intervalTicks * 50 * 0.85);
+        } else if (cause == EntityDamageEvent.DamageCause.WITHER) {
+            PotionEffect eff = victim.getPotionEffect(PotionEffectType.WITHER);
+            int amp = eff != null ? eff.getAmplifier() : 0;
+            long intervalTicks = Math.max(1, 40 >> amp);
+            return (long) (intervalTicks * 50 * 0.85);
+        } else if (cause == EntityDamageEvent.DamageCause.FIRE_TICK) {
+            return 850L;
+        } else if (cause == EntityDamageEvent.DamageCause.FREEZE) {
+            return 1700L;
+        } else if (cause == EntityDamageEvent.DamageCause.DROWNING) {
+            return 850L;
+        } else if (cause == EntityDamageEvent.DamageCause.STARVATION) {
+            return 3400L;
+        } else if (cause == EntityDamageEvent.DamageCause.SUFFOCATION) {
+            return 400L;
+        }
+        return 500L;
+    }
+
+    private long getPeriodicRegenIntervalMs(Player source, EntityRegainHealthEvent.RegainReason reason) {
+        if (reason == EntityRegainHealthEvent.RegainReason.MAGIC_REGEN) {
+            PotionEffect eff = source.getPotionEffect(PotionEffectType.REGENERATION);
+            int amp = eff != null ? eff.getAmplifier() : 0;
+            long intervalTicks = Math.max(1, 50 >> amp);
+            return (long) (intervalTicks * 50 * 0.85);
+        } else if (reason == EntityRegainHealthEvent.RegainReason.SATIATED) {
+            return source.getSaturation() > 0 ? 400L : 3200L;
+        }
+        return 500L;
     }
 
     // =========================================================================
@@ -58,6 +111,18 @@ public class SharedGameListener implements Listener {
         if (victim.getGameMode() == GameMode.SPECTATOR) return;
         if (plugin.getCompatibilityManager().isPlayerInIgnoredWorld(victim)) return;
         if (suppressHealth.contains(victim.getUniqueId())) return;
+
+        // Ochrona przed sumowaniem efektów okresowych w drużynie (tempo JAKBY JEDEN)
+        if (isPeriodicDamageCause(event.getCause())) {
+            long now = System.currentTimeMillis();
+            long minInterval = getPeriodicDamageIntervalMs(victim, event.getCause());
+            Long last = lastPeriodicDamageMillis.get(event.getCause());
+            if (last != null && (now - last) < minInterval) {
+                event.setCancelled(true);
+                return;
+            }
+            lastPeriodicDamageMillis.put(event.getCause(), now);
+        }
 
         Player attacker = null;
         if (event instanceof EntityDamageByEntityEvent edbe && edbe.getDamager() instanceof Player p) {
@@ -103,12 +168,25 @@ public class SharedGameListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onRegain(EntityRegainHealthEvent event) {
         if (!plugin.getConfigManager().isEnabledHealth()) return;
         if (!(event.getEntity() instanceof Player source)) return;
         if (suppressHealth.contains(source.getUniqueId())) return;
         if (plugin.getCompatibilityManager().isPlayerInIgnoredWorld(source)) return;
+
+        // Ochrona przed sumowaniem regeneracji zdrowia w drużynie (tempo JAKBY JEDEN)
+        EntityRegainHealthEvent.RegainReason reason = event.getRegainReason();
+        if (reason == EntityRegainHealthEvent.RegainReason.MAGIC_REGEN || reason == EntityRegainHealthEvent.RegainReason.SATIATED) {
+            long now = System.currentTimeMillis();
+            long minInterval = getPeriodicRegenIntervalMs(source, reason);
+            Long last = lastPeriodicRegenMillis.get(reason);
+            if (last != null && (now - last) < minInterval) {
+                event.setCancelled(true);
+                return;
+            }
+            lastPeriodicRegenMillis.put(reason, now);
+        }
 
         double maxHealth = plugin.getConfigManager().getMaxHealth();
         double healthAfter = Math.min(maxHealth, source.getHealth() + event.getAmount());
@@ -446,8 +524,15 @@ public class SharedGameListener implements Listener {
         Player player = event.getPlayer();
         double maxHp = plugin.getConfigManager().getMaxHealth();
 
+        // Jeśli gracz odradza się w ignorowanym świecie (np. Limbo w WorldReset), nie zmieniamy go w Spectatora!
+        if (plugin.getCompatibilityManager().isPlayerInIgnoredWorld(player)
+                || (event.getRespawnLocation().getWorld() != null && plugin.getCompatibilityManager().isIgnoredWorld(event.getRespawnLocation().getWorld()))) {
+            return;
+        }
+
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!player.isOnline()) return;
+            if (plugin.getCompatibilityManager().isPlayerInIgnoredWorld(player)) return;
 
             plugin.getCompatibilityManager().setMaxHealth(player, maxHp);
             plugin.getCompatibilityManager().applyHealthScaling(player, maxHp);
@@ -499,5 +584,7 @@ public class SharedGameListener implements Listener {
         suppressHealth.clear();
         suppressFood.clear();
         suppressEffects.clear();
+        lastPeriodicDamageMillis.clear();
+        lastPeriodicRegenMillis.clear();
     }
 }

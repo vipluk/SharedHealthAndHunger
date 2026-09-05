@@ -1,5 +1,7 @@
 package org.example.sharedhealthandhunger;
 
+import dev.faststats.bukkit.BukkitContext;
+import dev.faststats.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -16,6 +18,10 @@ import java.util.Objects;
  * WorldReset, Geyser Crossplay oraz wersjami Minecraft 1.21 - 26.2.
  */
 public class Main extends JavaPlugin {
+
+    private final BukkitContext fastStatsContext = new BukkitContext.Factory(this, "f7130edb41bc7dad6a1f697e74f54001")
+            .metrics(Metrics.Factory::create)
+            .create();
 
     private ConfigManager configManager;
     private LanguageManager languageManager;
@@ -46,11 +52,23 @@ public class Main extends JavaPlugin {
 
         applyMaxValuesToOnlinePlayers();
 
+        // FastStats Metrics
+        if (fastStatsContext != null) {
+            fastStatsContext.ready();
+        }
+
+        // bStats Metrics
+        int bStatsPluginId = 33872;
+        new org.bstats.bukkit.Metrics(this, bStatsPluginId);
+
         getLogger().info("SharedHealthAndHunger v1.4 enabled (Unified Architecture, WorldReset & Geyser ready).");
     }
 
     @Override
     public void onDisable() {
+        if (fastStatsContext != null) {
+            fastStatsContext.shutdown();
+        }
         if (hungerTask != null) {
             hungerTask.cancel();
         }
