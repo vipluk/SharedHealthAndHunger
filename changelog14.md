@@ -14,12 +14,6 @@
 * 📊 **Enhanced Action Bar Notifications:** Action bar messages showing who took damage and current team health now render smoothly across both Java and Bedrock editions.
 * 📈 **bStats & FastStats Metrics Integration:** Added anonymous server metrics via [bStats.org](https://bstats.org) and [FastStats.dev](https://faststats.dev) to monitor active installations and Minecraft versions. Both services are included side-by-side to compare their telemetry data and results.
 
-### ⚙️ New Commands & Configuration
-* 🔄 **Reload Command (`/sh reload`):** Reloads configuration and translations on the fly without needing to restart the server (`sharedhealth.reload`).
-* ⚡ **Manual Sync Command (`/sh sync`):** Instantly synchronizes health, hunger, and saturation across all teammates (`sharedhealth.sync`).
-* 🌐 **Ignored Worlds:** Easily exclude lobby, hub, or minigame worlds from shared damage and hunger in `config.yml`.
-* 🎛️ **Customizable Physical Feedback:** Configure whether teammates receive hurt screen tilt, knockback, or attacker feedback independently in `config.yml`.
-
 ### 🐛 Fixes & Improvements
 * 🛑 **Fixed Infinite Death Loop:** Fixed an issue where dying with spectator mode disabled could crash the server or trap players in an endless death loop.
 * 🎯 **Fixed Rapid Combat Hits:** Fixed an issue where rapid attacks and combo hits were silently dropped or ignored. All damage is now reliably shared.
